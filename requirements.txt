@@ -1,0 +1,11 @@
+streamlit>=1.32.0
+easyocr==1.7.2
+openai-whisper
+transformers>=4.40.0
+sentence-transformers>=2.7.0
+torch>=2.0.0
+torchvision>=0.15.0
+torchaudio>=2.0.0
+accelerate>=0.27.0
+Pillow>=10.0.0
+numpy>=1.24.0
