@@ -119,14 +119,66 @@ with tab_audio:
         modality    = "audio"
 
 with tab_text:
-    text_input = st.text_area(
-        "Paste or type text content",
-        placeholder="Enter document text, email content, or any text to analyze...",
-        height=150,
-        key="text_input"
+    text_source = st.radio(
+        "Input method",
+        ["Type or paste text", "Upload document (PDF or TXT)"],
+        horizontal=True,
+        key="text_source"
     )
+
+    text_input = ""
+
+    if text_source == "Type or paste text":
+        text_input = st.text_area(
+            "Paste or type text content",
+            placeholder="Enter document text, email content, or any text to analyze...",
+            height=150,
+            key="text_input"
+        )
+
+    else:
+        uploaded_doc = st.file_uploader(
+            "Upload a document",
+            type=["pdf", "txt"],
+            key="doc_upload"
+        )
+
+        if uploaded_doc:
+            # Handle TXT files
+            if uploaded_doc.name.endswith('.txt'):
+                text_input = uploaded_doc.read().decode('utf-8', errors='ignore')
+                st.success(f"✅ Loaded: {uploaded_doc.name}")
+                st.text_area(
+                    "Extracted text preview",
+                    value=text_input[:500] + "..." if len(text_input) > 500 else text_input,
+                    height=150,
+                    disabled=True,
+                    key="txt_preview"
+                )
+
+            # Handle PDF files
+            elif uploaded_doc.name.endswith('.pdf'):
+                try:
+                    import PyPDF2
+                    import io
+                    pdf_reader = PyPDF2.PdfReader(io.BytesIO(uploaded_doc.read()))
+                    text_input = ""
+                    for page in pdf_reader.pages:
+                        text_input += page.extract_text() + "\n"
+                    st.success(f"✅ Loaded: {uploaded_doc.name} ({len(pdf_reader.pages)} pages)")
+                    st.text_area(
+                        "Extracted text preview",
+                        value=text_input[:500] + "..." if len(text_input) > 500 else text_input,
+                        height=150,
+                        disabled=True,
+                        key="pdf_preview"
+                    )
+                except Exception as e:
+                    st.error(f"Could not read PDF: {e}")
+                    text_input = ""
+
     if text_input.strip():
-        input_label = "text_input"
+        input_label = "document_input"
         modality    = "text"
 
 st.markdown("")
